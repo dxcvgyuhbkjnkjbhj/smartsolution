@@ -1,0 +1,8 @@
+{
+  "/dashboard/modules/1/leccion-2/page": "app/dashboard/modules/1/leccion-2/page.js",
+  "/dashboard/modules/1/leccion-1/page": "app/dashboard/modules/1/leccion-1/page.js",
+  "/dashboard/modules/1/leccion-3/page": "app/dashboard/modules/1/leccion-3/page.js",
+  "/dashboard/modules/1/leccion-4/page": "app/dashboard/modules/1/leccion-4/page.js",
+  "/dashboard/modules/page": "app/dashboard/modules/page.js",
+  "/dashboard/modules/1/evaluacion-1/page": "app/dashboard/modules/1/evaluacion-1/page.js"
+}

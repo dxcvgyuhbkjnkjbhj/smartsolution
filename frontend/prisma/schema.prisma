@@ -1,0 +1,174 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Para Supabase
+}
+
+// ==========================================
+// 1. AUTENTICACIÓN Y PERFIL DEL USUARIO
+// ==========================================
+model User {
+  id                     String    @id @default(uuid())
+  email                  String    @unique
+  passwordHash           String
+  role                   Role      @default(STUDENT)
+  
+  // Perfil y Configuración
+  firstName              String?
+  lastName               String?
+  avatarUrl              String?
+  themePref              String    @default("dark")
+  
+  // NUEVO: Para saber si ya pasó el diagnóstico y no volver a preguntarle
+  hasCompletedOnboarding Boolean   @default(false) 
+  
+  // Gamificación global
+  totalXp                Int       @default(0)
+  currentLevel           Int       @default(1)
+  streakDays             Int       @default(0)
+  lastLoginAt            DateTime?
+  
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  // Relaciones
+  progress               LessonProgress[]
+  moduleStats            ModuleProgress[]
+  achievements           UserAchievement[]
+  certificates           Certificate[]
+}
+
+enum Role { STUDENT, ADMIN, INSTRUCTOR }
+
+// ==========================================
+// 2. ARQUITECTURA EDUCATIVA (LMS)
+// ==========================================
+model Module {
+  id          String   @id @default(uuid())
+  orderIndex  Int      @unique
+  title       String
+  description String
+  thumbnail   String?
+  isLocked    Boolean  @default(true)
+  
+  lessons     Lesson[]
+  userStats   ModuleProgress[]
+}
+
+model Lesson {
+  id          String     @id @default(uuid())
+  moduleId    String
+  module      Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  
+  orderIndex  Int
+  title       String
+  content     String?    @db.Text
+  type        LessonType @default(THEORY)
+  xpReward    Int        @default(50)
+  
+  questions   Question[] // Para evaluaciones
+  progress    LessonProgress[]
+}
+
+enum LessonType { THEORY, QUIZ, PRACTICE, CHALLENGE }
+
+// ==========================================
+// 3. SEGUIMIENTO DE PROGRESO GRANULAR
+// ==========================================
+model ModuleProgress {
+  id              String   @id @default(uuid())
+  userId          String
+  moduleId        String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module          Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  
+  completionPct   Float    @default(0.0) // Porcentaje de completitud
+  isCompleted     Boolean  @default(false)
+  unlockedAt      DateTime @default(now())
+  completedAt     DateTime?
+
+  @@unique([userId, moduleId])
+}
+
+model LessonProgress {
+  id              String   @id @default(uuid())
+  userId          String
+  lessonId        String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson          Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  isCompleted     Boolean  @default(false)
+  score           Float?   // Si es evaluación
+  timeSpentSecs   Int      @default(0) // Tiempo invertido
+  
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+
+  answers         UserAnswer[]
+
+  @@unique([userId, lessonId])
+}
+
+// ==========================================
+// 4. EVALUACIONES Y RESPUESTAS ROBUSTAS
+// ==========================================
+model Question {
+  id          String   @id @default(uuid())
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  title       String
+  type        String   // MULTIPLE_CHOICE, BOOLEAN, CODE
+  options     Json     // Almacena las opciones estructuradas
+  correctAns  String   // ID o valor de la respuesta correcta
+  points      Int      @default(1)
+
+  userAnswers UserAnswer[]
+}
+
+model UserAnswer {
+  id                String         @id @default(uuid())
+  lessonProgressId  String
+  lessonProgress    LessonProgress @relation(fields: [lessonProgressId], references: [id], onDelete: Cascade)
+  
+  questionId        String
+  question          Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  selectedAns       String
+  isCorrect         Boolean
+  answeredAt        DateTime       @default(now())
+
+  @@unique([lessonProgressId, questionId])
+}
+
+// ==========================================
+// 5. GAMIFICACIÓN Y CERTIFICADOS
+// ==========================================
+model UserAchievement {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  badgeName     String
+  description   String
+  unlockedAt    DateTime @default(now())
+}
+
+model Certificate {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  moduleTitle String
+  issueDate   DateTime @default(now())
+  verifyUrl   String   @unique
+}

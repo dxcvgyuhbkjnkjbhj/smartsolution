@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* MODO CLARO */
+    --background: #F4F7F9;
+    --surface: #FFFFFF;
+    --surface-hover: #Eef2f6;
+    --primary: #0077B6;
+    --primary-hover: #03045E;
+    --accent: #00B4D8;
+    --text-main: #0B1120;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+  }
+
+  .dark {
+    /* MODO OSCURO PREMIUM (Inspirado en tu imagen exacta) */
+    --background: #0B0E14;        /* Fondo súper oscuro, sin ser negro puro */
+    --surface: #131722;           /* Tarjetas ligeramente elevadas (Gris/Azul muy oscuro) */
+    --surface-hover: #1A1F2E;     /* Hover suave */
+    --primary: #0077B6;
+    --primary-hover: #00B4D8;
+    --accent: #00B4D8;            /* Cian brillante para los destellos */
+    --text-main: #F8FAFC;         /* Blanco roto para no cansar la vista */
+    --text-muted: #8B949E;        /* Gris azulado para textos secundarios */
+    --border: #1E293B;            /* Bordes muy sutiles para separar tarjetas */
+  }
+}
