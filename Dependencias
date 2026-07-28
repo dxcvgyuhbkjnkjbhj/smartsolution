@@ -1,0 +1,15 @@
+git clone https://github.com/dxcvgyuhbkjnkjbhj/smartsolution
+
+cd frontend
+npm install
+
+cd ../backend
+npm install
+
+cd backend
+npx prisma generate
+npx prisma db push
+
+npm run start:dev
+
+npm run dev
